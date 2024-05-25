@@ -1,5 +1,36 @@
 import pygame
 
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load('graphics/Player/player_walk_1.png').convert_alpha()
+        self.rect = self.image.get_rect(bottomleft = (80, 300))
+        self.y_vel = 0
+
+    def player_input(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE] and self.rect.bottom == 300:
+            self.y_vel = -20
+
+    def jump(self):
+        if self.y_vel != 0 or self.rect.bottom < 300:
+            self.rect.y += self.y_vel
+            self.y_vel += 1
+        if self.rect.bottom > 300:
+            self.rect.bottom = 300
+            self.y_vel = 0
+
+    def collision(self):
+        if self.rect.colliderect(snail_rect):
+            global game_active
+            game_active = False
+
+    def update(self):
+        self.player_input()
+        self.jump()
+        self.collision()
+
+
 pygame.init()
 
 game_active = True
@@ -20,10 +51,8 @@ score_rect = score_surface.get_rect(center = (400, 50))
 snail_surface = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
 snail_rect = snail_surface.get_rect(bottomleft = (800, 300))
 
-player_surface = pygame.image.load('graphics/Player/player_walk_1.png').convert_alpha()
-player_rect = player_surface.get_rect(bottomleft = (80, 300))
-player_y_vel = 0
-
+player = pygame.sprite.GroupSingle()
+player.add(Player())
 
 running = True
 
@@ -35,7 +64,7 @@ while running:
 
         if game_active:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if player_rect.bottom == 300 and player_rect.collidepoint(event.pos):
+                if player.bottom == 300 and player.rect.collidepoint(event.pos):
                     player_y_vel = -20
         else:
             if event.type == pygame.KEYDOWN:
@@ -53,23 +82,12 @@ while running:
             snail_rect.left = 800
         screen.blit(snail_surface, snail_rect)
 
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE] and player_rect.bottom == 300:
-            player_y_vel = -20
-
-        if player_y_vel != 0 or player_rect.bottom < 300:
-            player_rect.y += player_y_vel
-            player_y_vel += 1
-        if player_rect.bottom > 300:
-            player_rect.bottom = 300
-            player_y_vel = 0
+  
+        player.draw(screen) 
+        player.update()
 
 
-        screen.blit(player_surface, player_rect)   
 
-
-        if player_rect.colliderect(snail_rect):
-            game_active = False
     else:
 
         screen.fill('yellow')
